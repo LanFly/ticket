@@ -129,7 +129,7 @@ void SellTicket(){
 		int select;
 		cout<<"|========================"<<endl;
 		cout<<"|\t1 random ticket"<<endl;
-		cout<<"|\t2 seat ticket禄"<<endl;
+		cout<<"|\t2 seat ticket"<<endl;
 		cout<<"|========================"<<endl;
 		cout<<"please select method=";
 		cin>>select;
@@ -166,7 +166,7 @@ void SellTicket(){
                 cout<<"|----------------------------"<<endl;
                 cout<<"| number:"<<ticket[i].number<<"  train:"<<ticket[i].train<<endl;
                 cout<<"|----------------------------"<<endl;
-                cout<<"| carriage:"<<carriage<<"  seat禄:"<<seat<<endl;
+                cout<<"| carriage:"<<carriage<<"  seat:"<<seat<<endl;
                 cout<<"|============================"<<endl;
             }
 		}else{                  //seat ticket
