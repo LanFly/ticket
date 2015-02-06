@@ -1,9 +1,9 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <sstream>
-#include <windows.h>
-#include <ctime>
+#include <string.h>
+#include <unistd.h>
+#include <time.h>
 using namespace std;
 
 class Ticket{
@@ -36,9 +36,9 @@ public:
     }
 };
 
-//-----------------------------¶ÁÈ¡³µÆ±Êý¾Ý---------------------
+//-----------------------------read ticket info---------------------
 void ReadTicketInfo(Ticket * tic,int num){
-    cout<<"ÕýÔÚ¶ÁÈ¡Êý¾Ý£¬ÇëÉÔµÈ";
+    cout<<"Reading Ticket Info";
     const char* split="-";
 	char* p;
 	char date[2046]={'\0'};
@@ -89,11 +89,11 @@ void ReadTicketInfo(Ticket * tic,int num){
         cout<<".";
     }
     infile.close();
-    cout<<endl<<"Êý¾Ý¶ÁÈ¡Íê³É"<<endl;
+    cout<<endl<<"Read Ticket Info succeed"<<endl;
 }
-//-----------------------------±£´æ³µÆ±Êý¾Ý---------------------
+//-----------------------------write ticket info---------------------
 void WriteTicketInfo(Ticket * tic,int num){
-    cout<<"ÕýÔÚÐ´ÈëÊý¾Ý£¬ÇëÉÔºó";
+    cout<<"writing ticket info";
     ofstream outfile("TicketInfo.txt");
     outfile<<num<<endl;
     for(int i=0; i<num; ++i){
@@ -109,16 +109,16 @@ void WriteTicketInfo(Ticket * tic,int num){
         cout<<".";
     }
     outfile.close();
-    cout<<endl<<"Êý¾Ý±£´æÍê³É"<<endl;
+    cout<<endl<<"writed ticket info succeed"<<endl;
 }
-//-----------------------------ÊÛÆ±-----------------------------
+//-----------------------------sell ticket-----------------------------
 void SellTicket(){
     int num;
     char date[2046]={'\0'};
 	ifstream infile("TicketInfo.txt");
 	if(!infile)
 	{
-		cout<<"\tÃ»ÓÐÊý¾ÝÎÄ¼þ"<<endl;
+		cout<<"\tthere is no data file"<<endl;
 	}else{
 	    infile.getline(date,2046,'\n');
 	    stringstream TicketNum(date);
@@ -128,13 +128,12 @@ void SellTicket(){
 		ReadTicketInfo(ticket,num);
 		int select;
 		cout<<"|========================"<<endl;
-		cout<<"|\t1 ÏµÍ³Ëæ»ú³öÆ±"<<endl;
-		cout<<"|\t2 ÓÃ»§Ö¸¶¨×ùÎ»"<<endl;
+		cout<<"|\t1 random ticket"<<endl;
+		cout<<"|\t2 seat ticketç¦„"<<endl;
 		cout<<"|========================"<<endl;
-		cout<<"ÇëÑ¡Ôñ¹ºÆ±·½Ê½£º";
+		cout<<"please select method=";
 		cin>>select;
-		if(select==1){          //ÏµÍ³Ëæ»ú³öÆ±
-		    cout<<endl<<"ÏµÍ³ÕýÔÚ³öÆ±£¡ÇëÉÔºó"<<endl;
+		if(select==1){            //random ticket
             int i=0;
             for(i=0; i<num; ++i){
                 if(ticket[i].state==0)
@@ -145,80 +144,82 @@ void SellTicket(){
             if(i==num)
             {
                 cout<<"|==========================|"<<endl;
-                cout<<"|   ¶Ô²»Æð£¡³µÆ±ÒÑ¾­ÊÛÍê£¡ |"<<endl;
+                cout<<"|   there is no ticket     |"<<endl;
                 cout<<"|==========================|"<<endl;
             }else{
-                SYSTEMTIME sys;
-                GetLocalTime( &sys );
+                time_t now;
+                struct tm *timenow;
+                time(&now);
+                timenow=localtime(&now);
                 ticket[i].state=1;
-                ticket[i].year=sys.wYear;
-                ticket[i].month=sys.wMonth;
-                ticket[i].day=sys.wDay;
-                ticket[i].hour=sys.wHour;
-                ticket[i].minute=sys.wMinute;
-                ticket[i].second=sys.wSecond;
+                ticket[i].year=timenow->tm_year+1900;
+                ticket[i].month=timenow->tm_mon;
+                ticket[i].day=timenow->tm_mday;
+                ticket[i].hour=timenow->tm_hour;
+                ticket[i].minute=timenow->tm_min;
+                ticket[i].second=timenow->tm_sec;
                 int carriage = ticket[i].number/100;
                 int seat = ticket[i].number-carriage*100;
-                cout<<endl<<"¹ºÆ±³É¹¦£¡ÄãµÄ³µÆ±ÐÅÏ¢ÈçÏÂ"<<endl;
+                cout<<endl<<"this is your ticket info"<<endl;
                 cout<<endl<<"|============================"<<endl;
-                cout<<"| ¹ºÆ±ÈÕÆÚ:"<<ticket[i].year<<"Äê"<<ticket[i].month<<"ÔÂ"<<ticket[i].day<<"ÈÕ "<<ticket[i].hour<<":"<<ticket[i].minute<<":"<<ticket[i].second<<endl;
+                cout<<"| time:"<<ticket[i].year<<"-"<<ticket[i].month<<"-"<<ticket[i].day<<" "<<ticket[i].hour<<":"<<ticket[i].minute<<":"<<ticket[i].second<<endl;
                 cout<<"|----------------------------"<<endl;
-                cout<<"| ±àºÅ:"<<ticket[i].number<<"  ³µ´Î:"<<ticket[i].train<<endl;
+                cout<<"| number:"<<ticket[i].number<<"  train:"<<ticket[i].train<<endl;
                 cout<<"|----------------------------"<<endl;
-                cout<<"| ³µÏá:"<<carriage<<"  ×ùÎ»:"<<seat<<endl;
+                cout<<"| carriage:"<<carriage<<"  seatç¦„:"<<seat<<endl;
                 cout<<"|============================"<<endl;
-                cout<<"ÇëÀÎ¼ÇÄãµÄ³µÆ±±àºÅ£¡£¡£¡"<<endl;
             }
-		}else{                  //ÓÃ»§Ö¸¶¨×ùÎ»
+		}else{                  //seat ticket
 		    int UserCarriage;
             int UserSeat;
-            boolean done=false;
+            bool done=false;
             int i=0;
             while(!done){
-                cout<<"ÇëÑ¡Ôñ³µÏáºÅ£º";
+                cout<<"please input carriage=";
                 cin>>UserCarriage;
-                cout<<"ÇëÑ¡Ôñ×ùÎ»ºÅ£º";
+                cout<<"please input seat=";
                 cin>>UserSeat;
                 for(i=0; i<num; ++i){
                     int carriage=ticket[i].number/100;
                     int seat=ticket[i].number-carriage*100;
                     if(UserCarriage==carriage && UserSeat==seat){
                         if(ticket[i].state==1){
-                            cout<<"¶Ô²»Æð£¡¸ÃÆ±ÒÑ¾­³öÊÛ£¡"<<endl;
+                            cout<<"the ticket has been sold"<<endl;
                         }else{
-                            SYSTEMTIME sys;
-                            GetLocalTime( &sys );
+                            time_t now;
+                            struct tm *timenow;
+                            time(&now);
+                            timenow=localtime(&now);
                             ticket[i].state=1;
-                            ticket[i].year=sys.wYear;
-                            ticket[i].month=sys.wMonth;
-                            ticket[i].day=sys.wDay;
-                            ticket[i].hour=sys.wHour;
-                            ticket[i].minute=sys.wMinute;
-                            ticket[i].second=sys.wSecond;
+                            ticket[i].year=timenow->tm_year+1900;
+                            ticket[i].month=timenow->tm_mon;
+                            ticket[i].day=timenow->tm_mday;
+                            ticket[i].hour=timenow->tm_hour;
+                            ticket[i].minute=timenow->tm_min;
+                            ticket[i].second=timenow->tm_sec;
                             ticket[i].state=1;
-                            cout<<"¹ºÆ±³É¹¦£¡ÄãµÄ³µÆ±ÐÅÏ¢ÈçÏÂ"<<endl;
+                            cout<<"this is your ticket info"<<endl;
                             done=true;
                         }
                         break;
                     }
                 }
                 if(i==num){
-                    cout<<"¶Ô²»Æð£¡Ã»ÓÐ¸Ã×ùÎ»£¡"<<endl;
+                    cout<<"there is no such ticket"<<endl;
                 }
             }
             cout<<endl<<"|============================"<<endl;
-            cout<<"| ¹ºÆ±ÈÕÆÚ:"<<ticket[i].year<<"Äê"<<ticket[i].month<<"ÔÂ"<<ticket[i].day<<"ÈÕ "<<ticket[i].hour<<":"<<ticket[i].minute<<":"<<ticket[i].second<<endl;
+            cout<<"| time:"<<ticket[i].year<<"-"<<ticket[i].month<<"-"<<ticket[i].day<<" "<<ticket[i].hour<<":"<<ticket[i].minute<<":"<<ticket[i].second<<endl;
             cout<<"|----------------------------"<<endl;
-            cout<<"| ±àºÅ:"<<ticket[i].number<<"  ³µ´Î:"<<ticket[i].train<<endl;
+            cout<<"| number:"<<ticket[i].number<<"  train:"<<ticket[i].train<<endl;
             cout<<"|----------------------------"<<endl;
-            cout<<"| ³µÏá:"<<UserCarriage<<"  ×ùÎ»:"<<UserSeat<<endl;
+            cout<<"| carriage:"<<UserCarriage<<"  seat:"<<UserSeat<<endl;
             cout<<"|============================"<<endl;
-            cout<<"ÇëÀÎ¼ÇÄãµÄ³µÆ±±àºÅ£¡£¡£¡"<<endl;
 		}
 		WriteTicketInfo(ticket,num);
 	}
-	cout<<"·µ»ØÖ÷²Ëµ¥£¬";
-	system("pause");
+	cout<<endl;
+    sleep(3);
 }
 void QueryTicket(){
     int num;
@@ -226,7 +227,7 @@ void QueryTicket(){
 	ifstream infile("TicketInfo.txt");
 	if(!infile)
 	{
-		cout<<"\tÃ»ÓÐÊý¾ÝÎÄ¼þ"<<endl;
+		cout<<"\tthere is no data file"<<endl;
 	}else{
 	    infile.getline(date,2046,'\n');
 	    stringstream TicketNum(date);
@@ -242,27 +243,22 @@ void QueryTicket(){
                 int carriage = ticket[i].number/100;
                 int seat = ticket[i].number-carriage*100;
                 cout<<endl<<"|============================"<<endl;
-                Sleep(30);
-                cout<<"| ±àºÅ:"<<ticket[i].number<<"  ³µ´Î:"<<ticket[i].train<<endl;
-                Sleep(30);
+                cout<<"| number:"<<ticket[i].number<<"  train:"<<ticket[i].train<<endl;
                 cout<<"|----------------------------"<<endl;
-                Sleep(30);
-                cout<<"| ³µÏá:"<<carriage<<"  ×ùÎ»:"<<seat<<endl;
-                Sleep(30);
+                cout<<"| carriage:"<<carriage<<"  seat:"<<seat<<endl;
                 cout<<"|============================"<<endl;
-                Sleep(30);
                 cout<<endl;
                 ++count;
             }
 		}
 		if(count==0){
-            cout<<"Æ±ÒÑ¾­È«²¿ÊÛÍê£¡"<<endl;
+            cout<<"there is no ticket to sell"<<endl;
 		}else{
-            cout<<"»¹ÓÐ"<<count<<"ÕÅÆ±Ê£Óà£¡"<<endl;
+            cout<<"there have "<<count<<" ticket to sell"<<endl;
 		}
 	}
-	cout<<"·µ»ØÖ÷²Ëµ¥£¬";
-	system("pause");
+	cout<<endl;
+    sleep(3);
 }
 void ChangeTicket(){
     int num;
@@ -271,10 +267,10 @@ void ChangeTicket(){
 	ifstream infile("TicketInfo.txt");
 	if(!infile)
 	{
-		cout<<"\tÃ»ÓÐÊý¾ÝÎÄ¼þ"<<endl;
+		cout<<"\tthere is no data file"<<endl;
 	}else{
 	    int i;
-	    cout<<"ÇëÊäÈëÒª¸ÄÇ©µÄ³µÆ±±àºÅ£º";
+	    cout<<"please input ticket number you want to change=";
         cin>>number;
 	    infile.getline(date,2046,'\n');
 	    stringstream TicketNum(date);
@@ -285,7 +281,7 @@ void ChangeTicket(){
 		for(i=0; i<num; ++i){
             if(ticket[i].number==number){
                 if(ticket[i].state==0){
-                    cout<<"¶Ô²»Æð£¡¸ÃÆ±»¹Ã»ÓÐ³öÊÛ£¬²»ÄÜ¸ÄÇ©"<<endl;
+                    cout<<"the ticket has not been sold"<<endl;
                 }else{
                     ticket[i].state=0;
                     WriteTicketInfo(ticket,num);
@@ -297,19 +293,20 @@ void ChangeTicket(){
             }
 		}
 		if(i==num){
-            cout<<"¶Ô²»Æð£¡³µÕ¾Ã»ÓÐÊÛ³ö¸Ã³µÆ±£¡"<<endl;
+            cout<<"there is no such ticket"<<endl;
 		}else{
-            cout<<"¸ÄÇ©³É¹¦"<<endl;
+            cout<<"your ticket has been change"<<endl;
 		}
 	}
-	system("pause");
+    cout<<endl;
+    sleep(3);
 }
 void RefundTicket(){
     int num;
     char date[2046]={'\0'};
     ifstream infile("TicketInfo.txt");
     if(!infile){
-        cout<<"Ã»ÓÐÊý¾ÝÎÄ¼þ"<<endl;
+        cout<<"there is no data file"<<endl;
     }else{
         int number;
         int i;
@@ -319,16 +316,16 @@ void RefundTicket(){
         infile.close();
         Ticket * ticket=new Ticket[num];
         ReadTicketInfo(ticket,num);
-        cout<<"ÇëÊäÈëÒªÍËÆ±µÄ±àºÅ£º";
+        cout<<"please input the ticket number you want to refund=";
         cin>>number;
         for(i=0; i<num; ++i){
             if(ticket[i].number==number){
                 if(ticket[i].state==0){
-                    cout<<"¶Ô²»Æð£¡¸ÃÆ±Ã»ÓÐ³öÊÛ£¬²»ÄÜÍËÆ±"<<endl;
+                    cout<<"the ticket has not been sold"<<endl;
                 }else{
                     ticket[i].state=0;
                     WriteTicketInfo(ticket,num);
-                    cout<<"ÍËÆ±³É¹¦£¡"<<endl;
+                    cout<<"your ticket has been refund"<<endl;
                 }
                 break;
             }else{
@@ -336,31 +333,30 @@ void RefundTicket(){
             }
         }
         if(i==num){
-            cout<<"¶Ô²»Æð£¬Õâ²»ÊÇ±¾³µÕ¾ÊÛ³öµÄÆ±£¬²»ÄÜÍËÆ±"<<endl;
+            cout<<"there is no such ticket"<<endl;
         }
     }
-    cout<<"·µ»ØÖ÷²Ëµ¥£¬";
-    system("pause");
+    sleep(3);
 }
 int main()
 {
     int choose;
-    boolean exit=false;
+    bool exit=false;
     while(!exit){
-        cout<<"|==================|"<<endl;
-        cout<<"|     ¹¦ÄÜ²Ëµ¥     |"<<endl;
-        cout<<"|==================|"<<endl;
-        cout<<"|     1 ÂòÆ±       |"<<endl;
-        cout<<"|------------------|"<<endl;
-        cout<<"|     2 ²éÑ¯       |"<<endl;
-        cout<<"|------------------|"<<endl;
-        cout<<"|     3 ÍËÆ±       |"<<endl;
-        cout<<"|------------------|"<<endl;
-        cout<<"|     4 ¸ÄÇ©       |"<<endl;
-        cout<<"|------------------|"<<endl;
-        cout<<"|     5 ÍË³ö       |"<<endl;
-        cout<<"|==================|"<<endl;
-        cout<<"Ñ¡Ôñ¹¦ÄÜ£º";
+        cout<<"|======================|"<<endl;
+        cout<<"|   input your choose  |"<<endl;
+        cout<<"|======================|"<<endl;
+        cout<<"|     1 Sell Ticket    |"<<endl;
+        cout<<"|----------------------|"<<endl;
+        cout<<"|     2 Query Ticket   |"<<endl;
+        cout<<"|----------------------|"<<endl;
+        cout<<"|     3 Refund Ticket  |"<<endl;
+        cout<<"|----------------------|"<<endl;
+        cout<<"|     4 Change Ticket  |"<<endl;
+        cout<<"|----------------------|"<<endl;
+        cout<<"|     5 exit           |"<<endl;
+        cout<<"|======================|"<<endl;
+        cout<<"your choose=";
         cin>>choose;
         switch(choose){
             case 1:SellTicket();break;
@@ -368,9 +364,8 @@ int main()
             case 3:RefundTicket();break;
             case 4:ChangeTicket();break;
             case 5:exit=true;break;
-            default:cout<<"Ã»ÓÐ¸Ã¹¦ÄÜ"<<endl;system("pause");break;
+            default:cout<<"there is no such method"<<endl<<endl;break;
         }
-        system("cls");
     }
     return 0;
 }
